@@ -8,6 +8,7 @@ services:
     command: ["/usr/local/app/run.sh"]
     networks:
       web:
+        ipv4_address: 172.34.0.103
     ports:
       - 8080:8080
     environment:
@@ -19,6 +20,7 @@ services:
     command: --bind_ip_all
     networks:
       web:
+        ipv4_address: 172.34.0.101
     expose:
       - 27017
     environment:
@@ -36,6 +38,7 @@ services:
       - word-mongodb
     networks:
       web:
+        ipv4_address: 172.34.0.102
     ports:
       - 8081:8081
     environment:
@@ -46,7 +49,13 @@ services:
 
 networks:
   web:
-
+    driver: bridge
+    driver_opts:
+      com.docker.network.enable_ipv4: "true"
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.34.0.0/16
 volumes:
   mongodb:
     driver: local
