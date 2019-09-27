@@ -3,7 +3,6 @@ version: '3'
 services:
   word-information-collector:
     build: .
-    container_name: word-information-collector
     depends_on:
       - word-mongodb
     command: ["/usr/local/app/run.sh"]
@@ -17,7 +16,6 @@ services:
 
   word-mongodb:
     image: mongo:3.6.3
-    container_name: word-mongodb
     command: --bind_ip_all
     networks:
       web:
@@ -33,7 +31,6 @@ services:
 
   word-mongo-express:
     image: mongo-express
-    container_name: word-mongodb-express
     restart: always
     depends_on:
       - word-mongodb

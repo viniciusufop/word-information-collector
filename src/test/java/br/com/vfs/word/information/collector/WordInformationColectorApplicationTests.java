@@ -1,4 +1,4 @@
-package br.com.vfs.word.information.colector;
+package br.com.vfs.word.information.collector;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

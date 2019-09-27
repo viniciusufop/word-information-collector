@@ -1,4 +1,4 @@
-package br.com.vfs.word.information.colector.service;
+package br.com.vfs.word.information.collector.service;
 
 import com.google.common.collect.ConcurrentHashMultiset;
 import lombok.extern.slf4j.Slf4j;
@@ -15,12 +15,12 @@ import java.util.Optional;
 
 @Slf4j
 @Service
-public class WordColectorService {
+public class WordCollectorService {
 
     private final ConcurrentHashMultiset<String> words;
     private final String urlBase;
     private static final int SEARCH_DEPTH = 10;
-    public WordColectorService() {
+    public WordCollectorService() {
         words = ConcurrentHashMultiset.create();
         urlBase = "http://dicionariocriativo.com.br/";
     }

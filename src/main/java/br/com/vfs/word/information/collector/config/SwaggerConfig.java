@@ -1,4 +1,4 @@
-package br.com.vfs.word.information.colector.config;
+package br.com.vfs.word.information.collector.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

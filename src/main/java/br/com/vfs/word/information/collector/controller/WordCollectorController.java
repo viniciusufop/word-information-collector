@@ -1,6 +1,6 @@
-package br.com.vfs.word.information.colector.controller;
+package br.com.vfs.word.information.collector.controller;
 
-import br.com.vfs.word.information.colector.service.WordColectorService;
+import br.com.vfs.word.information.collector.service.WordCollectorService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -10,11 +10,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @RestController
-@RequestMapping("colector")
+@RequestMapping("collector")
 @RequiredArgsConstructor
-public class ColectorController {
+public class WordCollectorController {
 
-    private final WordColectorService service;
+    private final WordCollectorService service;
 
     @PostMapping("/actuator")
     public ResponseEntity actuator() {
