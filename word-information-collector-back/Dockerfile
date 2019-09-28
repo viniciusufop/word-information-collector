@@ -44,7 +44,7 @@ RUN mkdir -p $DIRECTORY
 WORKDIR $DIRECTORY
 
 # copia a aplicacao para o diretorio final
-COPY --from=BUILDER /usr/app/build/libs/word-information-collector-0.0.1-SNAPSHOT.jar word-information-collector.jar
+COPY --from=BUILDER /usr/app/build/libs/word-information-collector-back-0.0.1-SNAPSHOT.jar word-information-collector.jar
 
 COPY run.sh run.sh
 RUN chmod +x run.sh

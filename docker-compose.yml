@@ -1,8 +1,8 @@
 version: '3'
 
 services:
-  word-information-collector:
-    build: .
+  word-information-collector-back:
+    build: word-information-collector-back/.
     depends_on:
       - word-mongodb
     command: ["/usr/local/app/run.sh"]
