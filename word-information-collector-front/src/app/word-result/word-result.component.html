@@ -1,14 +1,12 @@
-<!-- <div class="row">
-    <mat-form-field class="full-width">
-        <input id="search" #input
-                type="search" placeholder="O que você deseja?"
-                aria-label="Number" matInput [matAutocomplete]="auto"
-                (keyup)="search($event)" (keyup.enter)="onEnter(input.value)">
-        <mat-autocomplete #auto="matAutocomplete">
-        <mat-option *ngFor="let option of options" [value]="option">
-            {{option}}
-        </mat-option>
-        </mat-autocomplete>
-    </mat-form-field>
-</div> -->
-<p>teste</p>
+
+<div class="container">
+    <div class="row">
+        <h1>Pesquise uma Palavra</h1>
+        <input id="word" type="text">
+        <button (click)="comprar()">Pesquisar</button>
+    </div>
+</div>
+<br>
+<div class="cytograph">
+    <ngx-cytoscape [elements]="graphData"></ngx-cytoscape>
+</div>
