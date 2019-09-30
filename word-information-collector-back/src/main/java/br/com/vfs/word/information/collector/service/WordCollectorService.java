@@ -31,7 +31,6 @@ public class WordCollectorService {
 
     public Set<Word> search(String searchWord) {
         proccessSynonymsWord(Optional.of(searchWord), 1);
-//        words.forEach(word -> log.info("m=search, palavras pesquisadas: {}", word));
         return new HashSet<>(words);
     }
 
@@ -40,8 +39,8 @@ public class WordCollectorService {
         words.forEach(word -> log.info("m=actuator, palavras pesquisadas: {}", word));
     }
 
-    private void proccessSynonymsWord(Optional<String> optionalWord, int profundidade) {
-        if(profundidade > SEARCH_DEPTH) {
+    private void proccessSynonymsWord(Optional<String> optionalWord, int depth) {
+        if(depth > SEARCH_DEPTH) {
             return;
         }
         optionalWord.ifPresent(word -> {
@@ -53,7 +52,7 @@ public class WordCollectorService {
                 entity.getSynonyms().parallelStream()
                         .filter(newWord -> words.stream().map(Word::getValue).noneMatch(value -> value.equals(newWord)))
                         .map(Optional::of)
-                        .forEach(newWord -> this.proccessSynonymsWord(newWord, profundidade+1));
+                        .forEach(newWord -> this.proccessSynonymsWord(newWord, depth+1));
             }
         });
 
