@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import {HttpClient, HttpHeaders} from '@angular/common/http';
+import {environment} from '../environments/environment';
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -10,8 +11,7 @@ export class WordService {
   private searchNameProductsUrl = '/word';
   private httpOptions;
   constructor(private http: HttpClient) {
-    // this.baseUrl = environment.APIEndpoint + '/products/public';
-    this.baseUrl = 'http://172.34.0.103:8080';
+    this.baseUrl = environment.APIEndpoint;
     this.httpOptions = {
       responseType: 'text',
       headers: new HttpHeaders({ })

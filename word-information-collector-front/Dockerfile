@@ -2,6 +2,7 @@
 FROM node:alpine as builder
 
 # build-time variables 
+ARG env=prod
 
 RUN apk update && apk add --no-cache make git
 
@@ -15,7 +16,8 @@ RUN cd /app && npm install
 COPY angular.json tsconfig.json tsconfig.app.json tsconfig.spec.json tslint.json  /app/
 COPY src /app/src
 
-RUN cd /app && npm run build
+# Build with $env variable from outside
+RUN cd /app && npm run build:$env
 
 # Build a small nginx image with static website
 FROM nginx:alpine
