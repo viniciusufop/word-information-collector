@@ -45,8 +45,14 @@ services:
       ME_CONFIG_MONGODB_SERVER: word-mongodb
       ME_CONFIG_MONGODB_ADMINUSERNAME: root
       ME_CONFIG_MONGODB_ADMINPASSWORD: 1234
-
-
+  app.web:
+    build:
+      context: word-information-collector-front/.
+    networks:
+      web:
+        ipv4_address: 172.34.0.104
+    ports:
+    - 80:80
 networks:
   web:
     driver: bridge
