@@ -1,4 +1,6 @@
 import { Component, OnInit } from '@angular/core';
+import { WordService } from '../word.service';
+import { WordIntegrationServiceService } from '../word-integration-service.service';
 
 @Component({
   selector: 'app-word-result',
@@ -6,6 +8,7 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./word-result.component.css']
 })
 export class WordResultComponent implements OnInit {
+  private value = 'inicial';
   private _graphData: any = {
     nodes: [
       {data: {id: 'j', name: 'Jerry', faveColor: '#6FB1FC', faveShape: 'triangle'}},
@@ -28,7 +31,7 @@ export class WordResultComponent implements OnInit {
       {data: {source: 'g', target: 'j', faveColor: '#F5A45D'}}
     ]
   };
-  constructor() { }
+  constructor(private service: WordService) { }
 
   ngOnInit() {
   }
@@ -39,5 +42,18 @@ export class WordResultComponent implements OnInit {
 
   set graphData(value: any) {
     this._graphData = value;
+  }
+
+  search(word: string ) {
+    console.log('teste '+word)
+    this.service.searchWord(word).subscribe(
+      data => {
+        this.graphData = data;
+      },
+      error => {
+        console.log(error);
+      }
+    );;
+
   }
 }

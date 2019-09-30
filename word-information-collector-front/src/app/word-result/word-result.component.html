@@ -2,11 +2,12 @@
 <div class="container">
     <div class="row">
         <h1>Pesquise uma Palavra</h1>
-        <input id="word" type="text">
-        <button (click)="comprar()">Pesquisar</button>
+        <input #word id="word" type="text">
+        <button (click)="search(word.value)">Pesquisar</button>
     </div>
 </div>
 <br>
+
 <div class="cytograph">
     <ngx-cytoscape [elements]="graphData"></ngx-cytoscape>
 </div>

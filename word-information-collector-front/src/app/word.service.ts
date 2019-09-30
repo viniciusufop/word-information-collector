@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import {HttpClient} from '@angular/common/http';
+import {HttpClient, HttpHeaders} from '@angular/common/http';
 import { Observable } from 'rxjs';
 
 @Injectable({
@@ -8,14 +8,20 @@ import { Observable } from 'rxjs';
 export class WordService {
   private baseUrl: string;
   private searchNameProductsUrl = '/word';
-
+  private httpOptions;
   constructor(private http: HttpClient) {
     // this.baseUrl = environment.APIEndpoint + '/products/public';
     this.baseUrl = 'http://localhost:8080';
+    this.httpOptions = {
+      responseType: 'text',
+      headers: new HttpHeaders({ })
+    };
   }
 
-  public searchWord(word: string): Observable<string[]> {
-    return this.http.get<string[]>(this.baseUrl + this.searchNameProductsUrl + '/' + word);
+  searchWord(word: string): Observable<Object> {
+    console.log(word);
+    var url = this.baseUrl + this.searchNameProductsUrl + '/' + word;
+    return this.http.get<Object>(url);
   }
 
 }

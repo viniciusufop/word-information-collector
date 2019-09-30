@@ -5,6 +5,7 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { WordResultComponent } from './word-result/word-result.component';
 import { CytoscapeModule } from 'ngx-cytoscape'; // <= Add this TS import
+import { HttpClientModule } from '@angular/common/http';
 
 @NgModule({
   declarations: [
@@ -14,7 +15,8 @@ import { CytoscapeModule } from 'ngx-cytoscape'; // <= Add this TS import
   imports: [
     BrowserModule,
     AppRoutingModule,
-    CytoscapeModule
+    CytoscapeModule,
+    HttpClientModule
   ],
   providers: [],
   bootstrap: [AppComponent]
