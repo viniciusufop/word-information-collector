@@ -11,7 +11,7 @@ export class WordService {
   private httpOptions;
   constructor(private http: HttpClient) {
     // this.baseUrl = environment.APIEndpoint + '/products/public';
-    this.baseUrl = 'http://localhost:8080';
+    this.baseUrl = 'http://172.34.0.103:8080';
     this.httpOptions = {
       responseType: 'text',
       headers: new HttpHeaders({ })
