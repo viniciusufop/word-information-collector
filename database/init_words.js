@@ -1,6 +1,6 @@
 db.createUser(
     {
-        user: "word-information-collector",
+        user: "words",
         pwd: "1234",
         roles: [
             {
