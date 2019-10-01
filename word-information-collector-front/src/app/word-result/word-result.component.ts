@@ -25,6 +25,8 @@ export class WordResultComponent implements OnInit {
   search(word: string ) {
     this.service.searchWord(word).subscribe(
       data => {
+        //limpa os dados
+        this.graphData = null;
         //atualiza os dados
         this.graphData = data;
         //nula o objecto para ser recriado
@@ -33,7 +35,6 @@ export class WordResultComponent implements OnInit {
       error => {
         console.log(error);
       }
-    );;
-
+    );
   }
 }
