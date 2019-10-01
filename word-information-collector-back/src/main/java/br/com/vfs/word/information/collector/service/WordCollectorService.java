@@ -69,9 +69,6 @@ public class WordCollectorService {
         } catch (IOException e) {
             log.error("m=actuatorLetter, erro ao executar o jsoup", e);
         }
-
-        proccessSynonymsWord(Optional.of("amor"), 1);
-        words.forEach(word -> log.info("m=actuatorLetter, palavras pesquisadas: {}", word));
     }
 
     private void proccessSynonymsWord(Optional<String> optionalWord, int depth) {
