@@ -1,6 +1,7 @@
 package br.com.vfs.word.information.collector.service;
 
 import br.com.vfs.word.information.collector.entity.Word;
+import br.com.vfs.word.information.collector.enums.Letter;
 import br.com.vfs.word.information.collector.repository.WordRepository;
 import com.google.common.collect.ConcurrentHashMultiset;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +21,7 @@ public class WordCollectorService {
 
     private final ConcurrentHashMultiset<Word> words;
     private final String urlBase;
+    private final String index;
     private final WordRepository wordRepository;
     private static final int SEARCH_DEPTH = 3;
 
@@ -27,6 +29,7 @@ public class WordCollectorService {
         this.wordRepository = wordRepository;
         words = ConcurrentHashMultiset.create();
         urlBase = "http://dicionariocriativo.com.br/";
+        index = "indice-de-palavras/";
     }
 
     public Set<Word> search(String searchWord) {
@@ -34,9 +37,40 @@ public class WordCollectorService {
         return new HashSet<>(words);
     }
 
-    public void actuator() {
+    public void actuatorLetter(Letter letter) {
+        try {
+            log.info("m=actuatorLetter, processando a letra {}", letter);
+            final String url = String.format("%s%s%s", urlBase, index, letter);
+            final Document doc = Jsoup.connect(url)
+                    .validateTLSCertificates(false)
+                    .get();
+
+
+            final Element indexList = doc.getElementById("indexList");
+            if(Objects.nonNull(indexList)){
+                final List<String> words = new ArrayList<>();
+                indexList.getElementsByTag("li")
+                        .forEach(newWord -> words.add(newWord.text()));
+                //tratar espacos
+                // removendo duplicacoes e palavras que nao inicial com a letra
+                final Set<String> totalWords = words.stream()
+                        .map(s -> s.split(" "))
+                        .map(Arrays::asList)
+                        .map(list -> list.stream()
+                                .filter(s -> s.substring(0, 1).equalsIgnoreCase(letter.name()))
+                                .collect(Collectors.toSet()))
+                        .reduce((a,b) -> {a.addAll(b); return a;})
+                        .orElse(Collections.EMPTY_SET);
+
+                totalWords.parallelStream()
+                    .forEach(this::searchWeb);
+            }
+        } catch (IOException e) {
+            log.error("m=actuatorLetter, erro ao executar o jsoup", e);
+        }
+
         proccessSynonymsWord(Optional.of("amor"), 1);
-        words.forEach(word -> log.info("m=actuator, palavras pesquisadas: {}", word));
+        words.forEach(word -> log.info("m=actuatorLetter, palavras pesquisadas: {}", word));
     }
 
     private void proccessSynonymsWord(Optional<String> optionalWord, int depth) {
@@ -61,7 +95,6 @@ public class WordCollectorService {
     private Optional<Word> searchWeb(String word) {
         try {
             log.info("m=proccessSynonymsWord, processando a palavra {}", word);
-
             final Document doc = Jsoup.connect(String.format("%s%s", urlBase, word))
                     .validateTLSCertificates(false)
                     .get();
@@ -78,7 +111,7 @@ public class WordCollectorService {
                 return Optional.of(newEntity);
             }
         } catch (IOException e) {
-            log.error("m=actuator, erro ao executar o jsoup", e);
+            log.error("m=actuatorLetter, erro ao executar o jsoup", e);
         }
         return Optional.empty();
     }
