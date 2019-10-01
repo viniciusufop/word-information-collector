@@ -9,6 +9,7 @@ import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 
 import java.beans.PropertyEditorSupport;
+import java.util.Arrays;
 
 @Slf4j
 @RestController
@@ -20,8 +21,20 @@ public class WordCollectorController {
 
     @PostMapping("/{letter}")
     public ResponseEntity actuator(@PathVariable("letter") Letter letter) {
-        log.info("m=actuatorLetter, atualizando palavras iniciadas com a letra {}", letter);
-        service.actuatorLetter(letter);
+        actuatorLetter(letter);
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/total")
+    public ResponseEntity actuatorTotal() {
+        log.info("m=actuatorLetter, atualizando todas as palavras");
+        Arrays.stream(Letter.values()).forEach(this::actuatorLetter);
+        return ResponseEntity.ok().build();
+    }
+
+    private void actuatorLetter(Letter letter) {
+        log.info("m=actuatorLetter, atualizando palavras iniciadas com a letra {}", letter);
+        service.actuatorLetter(letter);
+    }
+
 }

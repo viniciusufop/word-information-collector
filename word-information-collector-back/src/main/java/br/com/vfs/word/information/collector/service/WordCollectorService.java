@@ -63,7 +63,8 @@ public class WordCollectorService {
                         .orElse(Collections.EMPTY_SET);
 
                 totalWords.parallelStream()
-                    .forEach(this::searchWeb);
+                        .filter(word -> !wordRepository.findById(word).isPresent())
+                        .forEach(this::searchWeb);
             }
         } catch (IOException e) {
             log.error("m=actuatorLetter, erro ao executar o jsoup", e);
