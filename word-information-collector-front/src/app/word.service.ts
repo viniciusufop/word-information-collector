@@ -19,7 +19,6 @@ export class WordService {
   }
 
   searchWord(word: string): Observable<Object> {
-    console.log(word);
     var url = this.baseUrl + this.searchNameProductsUrl + '/' + word;
     return this.http.get<Object>(url);
   }
