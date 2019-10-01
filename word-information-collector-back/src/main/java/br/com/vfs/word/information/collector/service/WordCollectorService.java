@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -37,6 +38,7 @@ public class WordCollectorService {
         return new HashSet<>(words);
     }
 
+    @Async
     public void actuatorLetter(Letter letter) {
         try {
             log.info("m=actuatorLetter, processando a letra {}", letter);
