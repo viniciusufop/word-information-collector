@@ -9,7 +9,7 @@ import { CytoscapeComponent } from 'ngx-cytoscape';
 })
 export class WordResultComponent implements OnInit {  
   constructor(private service: WordService) {}
-  
+  significations: string[] = []
   ngOnInit() {
   }
 
@@ -17,6 +17,7 @@ export class WordResultComponent implements OnInit {
     this.service.searchWord(word).subscribe(
       data => {
         console.log(data['significations']);
+        this.significations = data['significations'];
         //atualiza os dados
         graph.layout = {
           name: 'circle'

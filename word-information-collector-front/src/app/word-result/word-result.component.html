@@ -5,9 +5,19 @@
         <input #word id="word" type="text">
         <button (click)="search(word.value, graph)">Pesquisar</button>
     </div>
+    <div class="row">
+        <h3>Significados</h3>
+        <div *ngFor ="let item of significations">
+            <p>{{item}}</p>
+        </div>
+    </div>
+    <div class="row">
+        <h3>Grafo de Sinonimos</h3>
+        <br>
+        <div class="cytograph">
+            <ngx-cytoscape #graph ></ngx-cytoscape>
+        </div>
+    </div>
 </div>
-<br>
 
-<div class="cytograph">
-    <ngx-cytoscape #graph ></ngx-cytoscape>
-</div>
+
