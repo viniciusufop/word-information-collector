@@ -10,6 +10,7 @@ import { CytoscapeComponent } from 'ngx-cytoscape';
 export class WordResultComponent implements OnInit {  
   constructor(private service: WordService) {}
   significations: string[] = []
+  apresentantionSignifications = false;
   ngOnInit() {
   }
 
@@ -18,6 +19,8 @@ export class WordResultComponent implements OnInit {
       data => {
         console.log(data['significations']);
         this.significations = data['significations'];
+        //validando se apresenta ou não
+        this.apresentantionSignifications = this.significations != null && this.significations.length > 0;
         //atualiza os dados
         graph.layout = {
           name: 'circle'
@@ -28,6 +31,7 @@ export class WordResultComponent implements OnInit {
       },
       error => {
         console.log(error);
+        this.apresentantionSignifications = false;
       }
     );
   }

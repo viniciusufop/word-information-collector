@@ -1,20 +1,45 @@
-
-<div class="container">
+<div class="container-fluid">
+    <nav class="navbar navbar-dark bg-dark">
+        <a class="navbar-brand" href="#">Analisador de Palavras</a>
+    </nav>
+    <br>
     <div class="row">
-        <h1>Pesquise uma Palavra</h1>
-        <input #word id="word" type="text">
-        <button (click)="search(word.value, graph)">Pesquisar</button>
-    </div>
-    <div class="row">
-        <h3>Significados</h3>
-        <div *ngFor ="let item of significations">
-            <p>{{item}}</p>
+        <div class="col-8">
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                <span class="input-group-text" id="inputGroup-sizing-default">Digite a palava a ser pesquisada:</span>
+                </div>
+                <input #word type="text" class="form-control" aria-label="Sizing example input" aria-describedby="inputGroup-sizing-default">
+            </div>
+        </div>
+        <div class="col-4">
+                <button class="btn btn-primary" (click)="search(word.value, graph)">Pesquisar</button>
+        </div>
+    </div>   
+    <div class="row" *ngIf="apresentantionSignifications"> 
+        <div class="col-12">
+            <h3>Significados</h3>
         </div>
     </div>
+
+    <div class="row" *ngIf="apresentantionSignifications">
+        <div class="col-12">
+            <ul class="list-group list-group-flush">
+                <div *ngFor ="let item of significations">
+                        <li class="list-group-item">{{item}}</li>
+                </div>
+            </ul>
+        </div>        
+    </div>
+
     <div class="row">
-        <h3>Grafo de Sinonimos</h3>
-        <br>
-        <div class="cytograph">
+        <div class="col-12">
+                <h3>Grafo de Sinonimos</h3>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-12 cytograph">
             <ngx-cytoscape #graph ></ngx-cytoscape>
         </div>
     </div>
