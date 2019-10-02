@@ -48,4 +48,4 @@ Abaixo as URL de acesso as aplicação que estão executando, após subir os con
 * Mongo Express: http://localhost:8081
 
 ## Falhas não solucionadas
-* foi identificado que ao comunicar com o site base para a pesquisa e utilizar palavras com caracteres especiais o sistema acaba convertendo o mesmo de encoding gerando um retorno sem informação para a palavra.
+* ~Foi identificado que ao comunicar com o site base para a pesquisa e utilizar palavras com caracteres especiais o sistema acaba convertendo o mesmo de encoding gerando um retorno sem informação para a palavra.~ Solucionado mudando a versão do JSoup.
