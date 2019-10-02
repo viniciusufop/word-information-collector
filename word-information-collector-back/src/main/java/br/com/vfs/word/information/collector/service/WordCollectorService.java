@@ -5,43 +5,45 @@ import br.com.vfs.word.information.collector.dto.InformationProcess;
 import br.com.vfs.word.information.collector.entity.Word;
 import br.com.vfs.word.information.collector.enums.Letter;
 import br.com.vfs.word.information.collector.repository.WordRepository;
-import com.google.common.collect.ConcurrentHashMultiset;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
-import org.jsoup.helper.HttpConnection;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.parser.Parser;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.beans.Encoder;
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.stream.Collectors;
+import com.google.common.collect.ConcurrentHashMultiset;
 
 @Slf4j
 @Service
 public class WordCollectorService {
 
     private final String urlBase;
+
     private final String index;
+
     private final WordRepository wordRepository;
+
     private static final int SEARCH_DEPTH = 3;
 
-    public WordCollectorService(WordRepository wordRepository) {
+    public WordCollectorService(WordRepository wordRepository){
         this.wordRepository = wordRepository;
         urlBase = "http://dicionariocriativo.com.br/";
         index = "indice-de-palavras/";
     }
 
-    public InformationProcess search(String searchWord) {
+    public InformationProcess search(String searchWord){
         final ConcurrentHashMultiset<Word> words = ConcurrentHashMultiset.create();
         proccessSynonymsWord(words, Optional.of(searchWord), 0);
         Set<Word> wordSet = words.elementSet();
@@ -56,17 +58,14 @@ public class WordCollectorService {
     }
 
     @Async
-    public void actuatorLetter(Letter letter) {
+    public void actuatorLetter(Letter letter){
         try {
             log.info("m=actuatorLetter, processando a letra {}", letter);
             final String url = String.format("%s%s%s", urlBase, index, letter);
-            final Document doc = Jsoup.connect(url)
-                    .validateTLSCertificates(false)
-                    .get();
-
+            final Document doc = Jsoup.connect(url).get();
 
             final Element indexList = doc.getElementById("indexList");
-            if(Objects.nonNull(indexList)){
+            if (Objects.nonNull(indexList)) {
                 final List<String> words = new ArrayList<>();
                 indexList.getElementsByTag("li")
                         .forEach(newWord -> words.add(newWord.text()));
@@ -78,7 +77,10 @@ public class WordCollectorService {
                         .map(list -> list.stream()
                                 .filter(s -> s.substring(0, 1).equalsIgnoreCase(letter.name()))
                                 .collect(Collectors.toSet()))
-                        .reduce((a,b) -> {a.addAll(b); return a;})
+                        .reduce((a, b) -> {
+                            a.addAll(b);
+                            return a;
+                        })
                         .orElse(Collections.EMPTY_SET);
 
                 totalWords.parallelStream()
@@ -90,19 +92,19 @@ public class WordCollectorService {
         }
     }
 
-    private void proccessSynonymsWord(ConcurrentHashMultiset<Word> words, Optional<String> optionalWord, int depth) {
-        if(depth >= SEARCH_DEPTH) {
+    private void proccessSynonymsWord(ConcurrentHashMultiset<Word> words, Optional<String> optionalWord, int depth){
+        if (depth >= SEARCH_DEPTH) {
             return;
         }
         optionalWord.ifPresent(word -> {
             log.info("m=proccessSynonymsWord, processando a palavra {}", word);
             final Word entity = wordRepository.findById(word).orElseGet(() -> searchWeb(word).orElse(new Word()));
-            if(!StringUtils.isEmpty(entity.getValue())){
+            if (!StringUtils.isEmpty(entity.getValue())) {
                 entity.setDepth(depth);
                 //avaliar se outro processo paralelo incluiu
                 words.stream()
                         .filter(element -> element.getValue().equalsIgnoreCase(entity.getValue())
-                                            && element.getDepth() > entity.getDepth())
+                                && element.getDepth() > entity.getDepth())
                         .findFirst()
                         .ifPresent(element -> element.setDepth(entity.getDepth()));
                 //adiciona o outro elemento de pesquisa
@@ -112,22 +114,18 @@ public class WordCollectorService {
                 entity.getSynonyms().parallelStream()
                         .filter(newWord -> words.stream().map(Word::getValue).noneMatch(value -> value.equals(newWord)))
                         .map(Optional::of)
-                        .forEach(newWord -> this.proccessSynonymsWord(words, newWord, depth+1));
+                        .forEach(newWord -> this.proccessSynonymsWord(words, newWord, depth + 1));
             }
         });
 
     }
 
-    private Optional<Word> searchWeb(String word) {
+    private Optional<Word> searchWeb(String word){
         try {
             log.info("m=proccessSynonymsWord, processando a palavra {}", word);
-            final String url = String.format("%s%s", urlBase, word);
-            final Document doc = Jsoup.connect(url)
-                    .validateTLSCertificates(false)
-                    .header("Content-type", "text/html")
-                    .header(HttpConnection.CONTENT_ENCODING, "UTF-8")
-                    .postDataCharset("UTF-8")
-                    .get();
+            final String url = String
+                    .format("%s%s", urlBase, word);
+            final Document doc = Jsoup.connect(url).get();
             final Word newEntity = Word.builder()
                     .value(word)
                     .signification(getSignification(doc))
@@ -141,11 +139,11 @@ public class WordCollectorService {
         return Optional.empty();
     }
 
-    private List<String> getSignification(Document doc) {
+    private List<String> getSignification(Document doc){
         final Element signification = doc.getElementById("significado");
         final List<String> list = new ArrayList<>();
 
-        if(Objects.nonNull(signification)){
+        if (Objects.nonNull(signification)) {
             signification.getElementsByTag("li").forEach(
                     value -> list.add(value.text()));
 
@@ -153,15 +151,14 @@ public class WordCollectorService {
         return list;
     }
 
-    private Set<String> getSynonyms(Document doc) {
+    private Set<String> getSynonyms(Document doc){
         final Element sinant = doc.getElementById("sinant");
         final Set<String> synonyms = new HashSet<>();
-        if(Objects.nonNull(sinant)){
+        if (Objects.nonNull(sinant)) {
             sinant.getElementsByClass("c_primary_hover")
                     .forEach(newWord -> synonyms.add(newWord.text()));
         }
         return synonyms;
     }
-
 
 }
