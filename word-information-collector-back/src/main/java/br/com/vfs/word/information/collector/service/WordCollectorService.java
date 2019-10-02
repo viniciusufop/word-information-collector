@@ -20,7 +20,6 @@ import java.util.stream.Collectors;
 @Service
 public class WordCollectorService {
 
-    private final ConcurrentHashMultiset<Word> words;
     private final String urlBase;
     private final String index;
     private final WordRepository wordRepository;
@@ -28,13 +27,13 @@ public class WordCollectorService {
 
     public WordCollectorService(WordRepository wordRepository) {
         this.wordRepository = wordRepository;
-        words = ConcurrentHashMultiset.create();
         urlBase = "http://dicionariocriativo.com.br/";
         index = "indice-de-palavras/";
     }
 
     public Set<Word> search(String searchWord) {
-        proccessSynonymsWord(Optional.of(searchWord), 1);
+        final ConcurrentHashMultiset<Word> words = ConcurrentHashMultiset.create();
+        proccessSynonymsWord(words, Optional.of(searchWord), 0);
         return new HashSet<>(words);
     }
 
@@ -73,20 +72,21 @@ public class WordCollectorService {
         }
     }
 
-    private void proccessSynonymsWord(Optional<String> optionalWord, int depth) {
-        if(depth > SEARCH_DEPTH) {
+    private void proccessSynonymsWord(ConcurrentHashMultiset<Word> words, Optional<String> optionalWord, int depth) {
+        if(depth >= SEARCH_DEPTH) {
             return;
         }
         optionalWord.ifPresent(word -> {
             log.info("m=proccessSynonymsWord, processando a palavra {}", word);
             final Word entity = wordRepository.findById(word).orElseGet(() -> searchWeb(word).orElse(new Word()));
             if(!StringUtils.isEmpty(entity.getValue())){
+                entity.setDepth(depth);
                 words.add(entity);
                 //busco os sinominos aqui
                 entity.getSynonyms().parallelStream()
                         .filter(newWord -> words.stream().map(Word::getValue).noneMatch(value -> value.equals(newWord)))
                         .map(Optional::of)
-                        .forEach(newWord -> this.proccessSynonymsWord(newWord, depth+1));
+                        .forEach(newWord -> this.proccessSynonymsWord(words, newWord, depth+1));
             }
         });
 
@@ -98,16 +98,11 @@ public class WordCollectorService {
             final Document doc = Jsoup.connect(String.format("%s%s", urlBase, word))
                     .validateTLSCertificates(false)
                     .get();
-            final Element sinant = doc.getElementById("sinant");
 
-            final Set<String> synonyms = new HashSet<>();
-            if(Objects.nonNull(sinant)){
-                sinant.getElementsByClass("c_primary_hover")
-                        .forEach(newWord -> synonyms.add(newWord.text()));
-            }
             final Word newEntity = Word.builder()
                     .value(word)
-                    .synonyms(synonyms)
+                    .signification(getSignification(doc))
+                    .synonyms(getSynonyms(doc))
                     .build();
             wordRepository.save(newEntity);
             return Optional.of(newEntity);
@@ -116,5 +111,28 @@ public class WordCollectorService {
         }
         return Optional.empty();
     }
+
+    private List<String> getSignification(Document doc) {
+        final Element signification = doc.getElementById("significado");
+        final List<String> list = new ArrayList<>();
+
+        if(Objects.nonNull(signification)){
+            signification.getElementsByTag("li").forEach(
+                    value -> list.add(value.text()));
+
+        }
+        return list;
+    }
+
+    private Set<String> getSynonyms(Document doc) {
+        final Element sinant = doc.getElementById("sinant");
+        final Set<String> synonyms = new HashSet<>();
+        if(Objects.nonNull(sinant)){
+            sinant.getElementsByClass("c_primary_hover")
+                    .forEach(newWord -> synonyms.add(newWord.text()));
+        }
+        return synonyms;
+    }
+
 
 }
