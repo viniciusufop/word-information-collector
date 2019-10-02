@@ -1,12 +1,13 @@
 package br.com.vfs.word.information.collector.controller;
 
-import br.com.vfs.word.information.collector.dto.GraphData;
 import br.com.vfs.word.information.collector.dto.InformationProcess;
 import br.com.vfs.word.information.collector.service.WordCollectorService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Objects;
 
 @Slf4j
 @RestController
@@ -21,6 +22,12 @@ public class WordController {
     public ResponseEntity<InformationProcess> get(
             @PathVariable("word") String word) {
         log.info("m=get, pesquisando pela palavra {}", word);
-        return ResponseEntity.ok(service.search(word));
+        if(Objects.isNull(word)) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        return ResponseEntity.ok(service.search(word.replaceAll("[^0-9a-zA-Z]+", "")));
     }
+
+
 }
