@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class WordController {
 
-    private static final String REGEX = "[^0-9a-zΰαβγθικλμνξςστυωϊϋ]+";
+    private static final String REGEX = "[^0-9a-zΓ Γ‘Γ’Γ£Γ¨Γ©ΓͺΓ«Γ¬Γ­Γ®Γ²Γ³Γ΄Γ΅ΓΉΓΊΓ»]+";
 
     private final WordCollectorService service;
 
