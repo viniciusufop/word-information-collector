@@ -3,11 +3,11 @@
     <div class="row">
         <h1>Pesquise uma Palavra</h1>
         <input #word id="word" type="text">
-        <button (click)="search(word.value)">Pesquisar</button>
+        <button (click)="search(word.value, graph)">Pesquisar</button>
     </div>
 </div>
 <br>
 
 <div class="cytograph">
-    <ngx-cytoscape [elements]="graphData" [layout]="layout" [cy]="cy"></ngx-cytoscape>
+    <ngx-cytoscape #graph ></ngx-cytoscape>
 </div>
