@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.List;
+import java.util.Set;
 
 @Data
 @Builder
@@ -19,6 +19,6 @@ public class Word {
     @Id
     private String value;
 
-    private List<String> synonyms;
+    private Set<String> synonyms;
 
 }

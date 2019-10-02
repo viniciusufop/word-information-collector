@@ -99,17 +99,18 @@ public class WordCollectorService {
                     .validateTLSCertificates(false)
                     .get();
             final Element sinant = doc.getElementById("sinant");
+
+            final Set<String> synonyms = new HashSet<>();
             if(Objects.nonNull(sinant)){
-                final List<String> synonyms = new ArrayList<>();
                 sinant.getElementsByClass("c_primary_hover")
                         .forEach(newWord -> synonyms.add(newWord.text()));
-                Word newEntity = Word.builder()
-                        .value(word)
-                        .synonyms(synonyms)
-                        .build();
-                wordRepository.save(newEntity);
-                return Optional.of(newEntity);
             }
+            final Word newEntity = Word.builder()
+                    .value(word)
+                    .synonyms(synonyms)
+                    .build();
+            wordRepository.save(newEntity);
+            return Optional.of(newEntity);
         } catch (IOException e) {
             log.error("m=actuatorLetter, erro ao executar o jsoup", e);
         }
