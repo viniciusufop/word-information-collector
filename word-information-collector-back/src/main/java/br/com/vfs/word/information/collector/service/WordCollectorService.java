@@ -99,7 +99,15 @@ public class WordCollectorService {
             final Word entity = wordRepository.findById(word).orElseGet(() -> searchWeb(word).orElse(new Word()));
             if(!StringUtils.isEmpty(entity.getValue())){
                 entity.setDepth(depth);
+                //avaliar se outro processo paralelo incluiu
+                words.stream()
+                        .filter(element -> element.getValue().equalsIgnoreCase(entity.getValue())
+                                            && element.getDepth() > entity.getDepth())
+                        .findFirst()
+                        .ifPresent(element -> element.setDepth(entity.getDepth()));
+                //adiciona o outro elemento de pesquisa
                 words.add(entity);
+
                 //busco os sinominos aqui
                 entity.getSynonyms().parallelStream()
                         .filter(newWord -> words.stream().map(Word::getValue).noneMatch(value -> value.equals(newWord)))
