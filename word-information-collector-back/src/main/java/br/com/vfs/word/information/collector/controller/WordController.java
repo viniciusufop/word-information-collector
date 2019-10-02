@@ -1,6 +1,7 @@
 package br.com.vfs.word.information.collector.controller;
 
 import br.com.vfs.word.information.collector.dto.GraphData;
+import br.com.vfs.word.information.collector.dto.InformationProcess;
 import br.com.vfs.word.information.collector.service.WordCollectorService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,9 +18,9 @@ public class WordController {
 
     @CrossOrigin
     @GetMapping("/{word}")
-    public ResponseEntity<GraphData> get(
+    public ResponseEntity<InformationProcess> get(
             @PathVariable("word") String word) {
         log.info("m=get, pesquisando pela palavra {}", word);
-        return ResponseEntity.ok(new GraphData(service.search(word)));
+        return ResponseEntity.ok(service.search(word));
     }
 }

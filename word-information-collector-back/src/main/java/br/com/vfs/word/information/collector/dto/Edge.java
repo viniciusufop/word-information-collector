@@ -13,6 +13,6 @@ public class Edge {
     public Edge(String source, String target) {
         this.source = source;
         this.target = target;
-        this.faveColor = Color.radomValue();
+        this.faveColor = Color.indexValue(0);
     }
 }

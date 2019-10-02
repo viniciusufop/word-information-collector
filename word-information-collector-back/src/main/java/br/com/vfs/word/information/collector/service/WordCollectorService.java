@@ -1,18 +1,28 @@
 package br.com.vfs.word.information.collector.service;
 
+import br.com.vfs.word.information.collector.dto.GraphData;
+import br.com.vfs.word.information.collector.dto.InformationProcess;
 import br.com.vfs.word.information.collector.entity.Word;
 import br.com.vfs.word.information.collector.enums.Letter;
 import br.com.vfs.word.information.collector.repository.WordRepository;
 import com.google.common.collect.ConcurrentHashMultiset;
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
+import org.jsoup.helper.HttpConnection;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.parser.Parser;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.beans.Encoder;
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -31,10 +41,18 @@ public class WordCollectorService {
         index = "indice-de-palavras/";
     }
 
-    public Set<Word> search(String searchWord) {
+    public InformationProcess search(String searchWord) {
         final ConcurrentHashMultiset<Word> words = ConcurrentHashMultiset.create();
         proccessSynonymsWord(words, Optional.of(searchWord), 0);
-        return new HashSet<>(words);
+        Set<Word> wordSet = words.elementSet();
+        return InformationProcess.builder()
+                .significations(wordSet.stream()
+                        .filter(s -> s.getValue().equalsIgnoreCase(searchWord))
+                        .map(Word::getSignification)
+                        .findFirst()
+                        .orElse(new ArrayList<>()))
+                .graphData(new GraphData(wordSet))
+                .build();
     }
 
     @Async
@@ -95,10 +113,13 @@ public class WordCollectorService {
     private Optional<Word> searchWeb(String word) {
         try {
             log.info("m=proccessSynonymsWord, processando a palavra {}", word);
-            final Document doc = Jsoup.connect(String.format("%s%s", urlBase, word))
+            final String url = String.format("%s%s", urlBase, word);
+            final Document doc = Jsoup.connect(url)
                     .validateTLSCertificates(false)
+                    .header("Content-type", "text/html")
+                    .header(HttpConnection.CONTENT_ENCODING, "UTF-8")
+                    .postDataCharset("UTF-8")
                     .get();
-
             final Word newEntity = Word.builder()
                     .value(word)
                     .signification(getSignification(doc))
