@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Mono;
 
 @Slf4j
 @RestController
@@ -27,7 +28,7 @@ public class WordController {
 
     @CrossOrigin
     @GetMapping("/{word}")
-    public ResponseEntity<InformationProcess> get(
+    public ResponseEntity<Mono<InformationProcess>> get(
             @PathVariable("word") String word){
         try {
             //decoder

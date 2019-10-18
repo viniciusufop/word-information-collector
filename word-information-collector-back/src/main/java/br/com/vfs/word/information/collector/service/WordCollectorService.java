@@ -23,9 +23,9 @@ import org.jsoup.nodes.Element;
 import org.springframework.data.util.Pair;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import com.google.common.collect.ConcurrentHashMultiset;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Slf4j
@@ -46,9 +46,11 @@ public class WordCollectorService {
         index = "indice-de-palavras/";
     }
 
-    public InformationProcess search(String searchWord){
+    public Mono<InformationProcess> search(String searchWord){
         final ConcurrentHashMultiset<Word> words = ConcurrentHashMultiset.create();
-        proccessSynonymsWord(words, Optional.of(searchWord), 0);
+
+        Flux<Word> wordFlux = processWord(words, Optional.of(searchWord), 0);
+        processWord(words, Optional.of(searchWord), 0);
         Set<Word> wordSet = words.elementSet();
         return InformationProcess.builder()
                 .significations(wordSet.stream()
@@ -86,6 +88,17 @@ public class WordCollectorService {
                         })
                         .orElse(Collections.EMPTY_SET);
 
+
+                Flux<Word> fluxWords = totalWords
+                        .parallelStream()
+                        .map(word -> Pair.of(word, wordRepository.findById(word)))
+                        .map(pair ->
+                                pair.getSecond()
+                                        .switchIfEmpty(searchWeb(pair.getFirst())))
+                        .map(Mono::flux)
+                        .reduce(Flux::concatWith)
+                        .orElse(Flux.empty());
+
                 totalWords
                         .parallelStream()
                         .map(word -> Pair.of(word, wordRepository.findById(word)))
@@ -98,39 +111,41 @@ public class WordCollectorService {
         }
     }
 
-    private void proccessSynonymsWord(ConcurrentHashMultiset<Word> words, Optional<String> optionalWord, int depth){
-        if (depth >= SEARCH_DEPTH) {
-            return;
-        }
-        optionalWord.ifPresent(word -> {
-            log.info("m=proccessSynonymsWord, processando a palavra {}", word);
-
+    private Flux<Word> processWord(ConcurrentHashMultiset<Word> words, Optional<String> optionalWord, int depth){
+        return optionalWord.map(word -> {
+            log.info("m=processWord, processando a palavra {}", word);
             final Mono<Word> wordMono = wordRepository.findById(word)
                     .switchIfEmpty(searchWeb(word));
-            wordMono.doOnSuccess(entity -> {
-                entity.setDepth(depth);
-                //avaliar se outro processo paralelo incluiu
-                words.stream()
-                        .filter(element -> element.getValue().equalsIgnoreCase(entity.getValue())
-                                && element.getDepth() > entity.getDepth())
-                        .findFirst()
-                        .ifPresent(element -> element.setDepth(entity.getDepth()));
-                //adiciona o outro elemento de pesquisa
-                words.add(entity);
+            return wordMono.flatMapMany(entity -> processWord2(words, entity, depth));
+        }).orElse(Flux.empty());
+    }
 
-                //busco os sinominos aqui
-                entity.getSynonyms().parallelStream()
-                        .filter(newWord -> words.stream().map(Word::getValue).noneMatch(value -> value.equals(newWord)))
-                        .map(Optional::of)
-                        .forEach(newWord -> this.proccessSynonymsWord(words, newWord, depth + 1));
-            });
-        });
-
+    private Flux<Word> processWord2 (ConcurrentHashMultiset<Word> words,Word entity, int depth){
+        entity.setDepth(depth);
+        //avaliar se outro processo paralelo incluiu
+        words.stream()
+                .filter(element -> element.getValue().equalsIgnoreCase(entity.getValue())
+                        && element.getDepth() > entity.getDepth())
+                .findFirst()
+                .ifPresent(element -> element.setDepth(entity.getDepth()));
+        //adiciona o outro elemento de pesquisa
+        words.add(entity);
+        final int nextdepth = depth + 1;
+        if (nextdepth < SEARCH_DEPTH) {
+            //busco os sinominos aqui
+            return entity.getSynonyms().parallelStream()
+                    .filter(newWord -> words.stream().map(Word::getValue).noneMatch(value -> value.equals(newWord)))
+                    .map(Optional::of)
+                    .map(newWord -> this.processWord(words, newWord, nextdepth))
+                    .reduce(Flux::concatWith)
+                    .orElse(Flux.empty());
+        }
+        return Flux.empty();
     }
 
     private Mono<Word> searchWeb(String word){
         try {
-            log.info("m=proccessSynonymsWord, processando a palavra {}", word);
+            log.info("m=processWord, processando a palavra {}", word);
             final String url = String
                     .format("%s%s", urlBase, word);
             final Document doc = Jsoup.connect(url).get();
