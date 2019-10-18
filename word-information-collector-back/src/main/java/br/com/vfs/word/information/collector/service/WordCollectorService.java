@@ -15,15 +15,18 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import lombok.extern.slf4j.Slf4j;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.springframework.data.util.Pair;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import com.google.common.collect.ConcurrentHashMultiset;
+import reactor.core.publisher.Mono;
 
 @Slf4j
 @Service
@@ -83,9 +86,12 @@ public class WordCollectorService {
                         })
                         .orElse(Collections.EMPTY_SET);
 
-                totalWords.parallelStream()
-                        .filter(word -> !wordRepository.findById(word).isPresent())
-                        .forEach(this::searchWeb);
+                totalWords
+                        .parallelStream()
+                        .map(word -> Pair.of(word, wordRepository.findById(word)))
+                        .forEach(pair ->
+                            pair.getSecond().switchIfEmpty(searchWeb(pair.getFirst())));
+
             }
         } catch (IOException e) {
             log.error("m=actuatorLetter, erro ao executar o jsoup", e);
@@ -98,8 +104,10 @@ public class WordCollectorService {
         }
         optionalWord.ifPresent(word -> {
             log.info("m=proccessSynonymsWord, processando a palavra {}", word);
-            final Word entity = wordRepository.findById(word).orElseGet(() -> searchWeb(word).orElse(new Word()));
-            if (!StringUtils.isEmpty(entity.getValue())) {
+
+            final Mono<Word> wordMono = wordRepository.findById(word)
+                    .switchIfEmpty(searchWeb(word));
+            wordMono.doOnSuccess(entity -> {
                 entity.setDepth(depth);
                 //avaliar se outro processo paralelo incluiu
                 words.stream()
@@ -115,12 +123,12 @@ public class WordCollectorService {
                         .filter(newWord -> words.stream().map(Word::getValue).noneMatch(value -> value.equals(newWord)))
                         .map(Optional::of)
                         .forEach(newWord -> this.proccessSynonymsWord(words, newWord, depth + 1));
-            }
+            });
         });
 
     }
 
-    private Optional<Word> searchWeb(String word){
+    private Mono<Word> searchWeb(String word){
         try {
             log.info("m=proccessSynonymsWord, processando a palavra {}", word);
             final String url = String
@@ -131,12 +139,11 @@ public class WordCollectorService {
                     .signification(getSignification(doc))
                     .synonyms(getSynonyms(doc))
                     .build();
-            wordRepository.save(newEntity);
-            return Optional.of(newEntity);
+            return wordRepository.save(newEntity);
         } catch (IOException e) {
             log.error("m=actuatorLetter, erro ao executar o jsoup", e);
         }
-        return Optional.empty();
+        return Mono.empty();
     }
 
     private List<String> getSignification(Document doc){
